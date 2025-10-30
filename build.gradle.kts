@@ -79,6 +79,7 @@ allprojects {
     gradle.projectsEvaluated {
         tasks.withType<JavaCompile>().configureEach {
             options.compilerArgs.addAll(arrayOf("-Xmaxerrs", "1000"))
+            options.isWarnings = false
         }
         tasks.withType<Test>().configureEach {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
