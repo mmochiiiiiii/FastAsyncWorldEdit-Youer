@@ -52,26 +52,97 @@ public abstract class CachedBukkitAdapter implements IBukkitAdapter {
      */
     @Override
     public ItemType asItemType(Material material) {
+        if (material == null || material.isLegacy()) {
+            return null;
+        }
+
         try {
-            return ItemTypes.get(itemTypes[material.ordinal()]);
+            if (material.ordinal() >= itemTypes.length) {
+                synchronized (this) {
+                    if (material.ordinal() >= itemTypes.length) {
+                        reinitializeArrays();
+                    }
+                }
+            }
+
+            int internalId = itemTypes[material.ordinal()];
+            if (internalId == 0 && material.ordinal() != 0) {
+                ItemType resolved = resolveItemType(material);
+                return resolved != null ? resolved : getDefaultItemType();
+            }
+
+            ItemType result = ItemTypes.get(internalId);
+            return result != null ? result : getDefaultItemType();
         } catch (NullPointerException e) {
             if (init()) {
                 return asItemType(material);
             }
-            return ItemTypes.get(itemTypes[material.ordinal()]);
+            ItemType resolved = resolveItemType(material);
+            return resolved != null ? resolved : getDefaultItemType();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            synchronized (this) {
+                reinitializeArrays();
+                if (material.ordinal() >= itemTypes.length) {
+                    ItemType resolved = resolveItemType(material);
+                    return resolved != null ? resolved : getDefaultItemType();
+                }
+            }
+            ItemType result = ItemTypes.get(itemTypes[material.ordinal()]);
+            return result != null ? result : getDefaultItemType();
         }
+    }
+
+    private ItemType getDefaultItemType() {
+        return ItemTypes.get("minecraft:air");
     }
 
     @Override
     public BlockType asBlockType(Material material) {
         try {
-            return BlockTypesCache.values[blockTypes[material.ordinal()]];
-        } catch (NullPointerException e) {
+            if (material.ordinal() >= blockTypes.length) {
+                synchronized (this) {
+                    if (material.ordinal() >= blockTypes.length) {
+                        reinitializeArrays();
+                    }
+                }
+            }
+
+            int internalId = blockTypes[material.ordinal()];
+            if (internalId == 0 && material.ordinal() != 0) {
+                return resolveBlockType(material);
+            }
+
+            return BlockTypesCache.values[internalId];
+        } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
             if (init()) {
                 return asBlockType(material);
             }
-            throw e;
+            return resolveBlockType(material);
         }
+    }
+
+    private ItemType resolveItemType(Material material) {
+        if (material == null || material.isLegacy()) {
+            return null;
+        }
+        NamespacedKey key = material.getKey();
+        String id = key.getNamespace() + ":" + key.getKey();
+        return ItemTypes.get(id);
+    }
+
+    private BlockType resolveBlockType(Material material) {
+        if (material == null || material.isLegacy() || !material.isBlock()) {
+            return null;
+        }
+        NamespacedKey key = material.getKey();
+        String id = key.getNamespace() + ":" + key.getKey();
+        return BlockTypes.get(id);
+    }
+
+    private void reinitializeArrays() {
+        itemTypes = null;
+        blockTypes = null;
+        init();
     }
 
     /**
@@ -85,14 +156,21 @@ public abstract class CachedBukkitAdapter implements IBukkitAdapter {
         try {
             checkNotNull(blockData);
             Material material = blockData.getMaterial();
+            if (material.ordinal() >= blockTypes.length) {
+                synchronized (this) {
+                    if (material.ordinal() >= blockTypes.length) {
+                        reinitializeArrays();
+                    }
+                }
+            }
             BlockType type = BlockTypes.getFromStateId(blockTypes[material.ordinal()]);
-            List<? extends Property> propList = type.getProperties();
+            List<? extends Property<?>> propList = type.getProperties();
             if (propList.size() == 0) {
                 return type.getDefaultState();
             }
             String properties = blockData.getAsString();
             return BlockState.get(type, properties, type.getDefaultState());
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
             if (init()) {
                 return adapt(blockData);
             }

@@ -31,18 +31,20 @@ public class BrushListener implements Listener {
         BukkitPlayer player = BukkitAdapter.adapt(bukkitPlayer);
         LocalSession session = player.getSession();
         Tool tool = session.getTool(player);
-        if (tool instanceof ScrollTool scrollable) {
-            final int slot = event.getNewSlot();
-            final int oldSlot = event.getPreviousSlot();
-            final int ri;
-            if ((((slot - oldSlot) <= 4) && ((slot - oldSlot) > 0)) || ((slot - oldSlot) < -4)) {
-                ri = 1;
-            } else {
-                ri = -1;
-            }
-            if (scrollable.increment(player, ri)) {
-                bukkitPlayer.getInventory().setHeldItemSlot(oldSlot);
-            }
+        if (tool == null || !(tool instanceof ScrollTool)) {
+            return;
+        }
+        ScrollTool scrollable = (ScrollTool) tool;
+        final int slot = event.getNewSlot();
+        final int oldSlot = event.getPreviousSlot();
+        final int ri;
+        if ((((slot - oldSlot) <= 4) && ((slot - oldSlot) > 0)) || ((slot - oldSlot) < -4)) {
+            ri = 1;
+        } else {
+            ri = -1;
+        }
+        if (scrollable.increment(player, ri)) {
+            bukkitPlayer.getInventory().setHeldItemSlot(oldSlot);
         }
     }
 

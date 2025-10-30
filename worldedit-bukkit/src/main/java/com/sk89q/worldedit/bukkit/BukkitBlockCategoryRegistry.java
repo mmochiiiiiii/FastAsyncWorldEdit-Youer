@@ -27,13 +27,24 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BukkitBlockCategoryRegistry implements BlockCategoryRegistry {
 
     private Set<BlockType> getFromBukkitTag(Tag<Material> tag) {
-        return tag.getValues().stream().map(BukkitAdapter::asBlockType).collect(Collectors.toSet());
+        return tag.getValues().stream()
+                .filter(material -> !material.isLegacy())
+                .map(material -> {
+                    try {
+                        return BukkitAdapter.asBlockType(material);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Override
