@@ -143,12 +143,38 @@ public class CLIWorldEdit {
                 }));
             }
         }
-        // Items
+        // Items - load from data files (for CLI)
         for (String name : fileRegistries.getDataFile().items) {
             if (ItemType.REGISTRY.get(name) == null) {
                 ItemType.REGISTRY.register(name, new ItemType(name));
             }
         }
+
+        // Items - load from Bukkit Material (for hybrid server)
+        try {
+            Class<?> materialClass = Class.forName("org.bukkit.Material");
+            Object[] materials = (Object[]) materialClass.getMethod("values").invoke(null);
+            for (Object mat : materials) {
+                boolean isItem = (boolean) materialClass.getMethod("isItem").invoke(mat);
+                boolean isLegacy = (boolean) materialClass.getMethod("isLegacy").invoke(mat);
+
+                if (!isItem || isLegacy) {
+                    continue;
+                }
+
+                Object key = materialClass.getMethod("getKey").invoke(mat);
+                String keyString = (String) key.getClass().getMethod("asString").invoke(key);
+
+                if (ItemType.REGISTRY.get(keyString) == null) {
+                    ItemType.REGISTRY.register(keyString, new ItemType(keyString));
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            // Bukkit API not found - skip to (CLI mode)
+        } catch (NoSuchMethodException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
+            LOGGER.warn("Failed to load items from Bukkit Material", e);
+        }
+
         // Entities
         for (String name : fileRegistries.getDataFile().entities) {
             if (EntityType.REGISTRY.get(name) == null) {
