@@ -207,7 +207,13 @@ public interface IBukkitAdapter {
                 }
             };
         }
-        return BlockTypes.get(material.getKey().toString());
+        String key = material.getKey().toString();
+        BlockType blockType = BlockTypes.get(key);
+        if (blockType == null) {
+            // Fallback for modded blocks
+            return BlockTypes.get("minecraft:stone");
+        }
+        return blockType;
     }
 
 
@@ -218,7 +224,14 @@ public interface IBukkitAdapter {
      * @return The itemtype
      */
     default ItemType asItemType(Material material) {
-        return ItemTypes.get(material.getKey().toString());
+        checkNotNull(material);
+        String key = material.getKey().toString();
+        ItemType itemType = ItemTypes.get(key);
+        if (itemType == null) {
+            // Fallback for modded items that aren't registered in WorldEdit
+            return ItemTypes.get("minecraft:stone"); // or throw exception
+        }
+        return itemType;
     }
 
     /**
