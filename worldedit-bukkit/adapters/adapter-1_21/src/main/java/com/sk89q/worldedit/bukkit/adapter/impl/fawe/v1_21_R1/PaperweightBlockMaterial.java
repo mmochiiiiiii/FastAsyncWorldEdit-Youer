@@ -27,8 +27,14 @@ public class PaperweightBlockMaterial extends BukkitBlockMaterial<Block, BlockSt
 
     @Override
     protected FaweCompoundTag tileForBlock(final Block block) {
-        BlockEntity tileEntity = !(block instanceof EntityBlock eb) ? null : eb.newBlockEntity(BlockPos.ZERO, this.blockState);
-        return tileEntity == null ? null : PaperweightGetBlocks.NMS_TO_TILE.apply(tileEntity);
+        try {
+            BlockEntity tileEntity = !(block instanceof EntityBlock eb) ? null : eb.newBlockEntity(BlockPos.ZERO, this.blockState);
+            return tileEntity == null ? null : PaperweightGetBlocks.NMS_TO_TILE.apply(tileEntity);
+        } catch (IllegalStateException e) {
+            return null;
+        } catch (ExceptionInInitializerError e) {
+            return null;
+        }
     }
 
     @Override
