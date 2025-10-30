@@ -1,24 +1,14 @@
-# FastAsyncWorldEdit - Youer Patched Version
-
 ## Overview
 
-This is a modified version of FastAsyncWorldEdit that addresses critical issues with modded item and block type resolution, providing better compatibility with modded Minecraft environments.
+A patched version of FastAsyncWorldEdit that extends full support for modded Minecraft environments, including modded items, blocks, fluids, and NBT data preservation.
 
 ## Key Improvements
 
-### 🔧 Enhanced Modded Item/Block Support
-- **Fixed modded item type resolution**: Improved handling of items from various mods
-- **Enhanced block type recognition**: Better support for custom blocks from mod packs
-- **Namespace handling**: Improved parsing of modded item/block namespaces
-- **Compatibility improvements**: Better integration with popular mod frameworks
-
-## Technical Details
-
-The patches focus on:
-- Item type parsing and validation
-- Block state resolution for modded blocks
-- Namespace handling improvements
-- Registry lookup optimizations
+### 🔧 Core Fixes
+- **Modded item/block support**: Full compatibility with modded items and blocks, including proper namespace parsing and registry lookup
+- **Modded fluid blocks**: Complete support for custom fluid blocks from mods
+- **NBT data preservation**: Maintains NBT data during operations, preserving inventories and tile entity data in modded blocks
+- **Error handling**: Enhanced validation and error messages for edge cases
 
 ## Building from Source
 
